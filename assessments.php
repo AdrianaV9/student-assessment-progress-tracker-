@@ -27,7 +27,7 @@ require __DIR__ . '/includes/header.php';
         <p class="eyebrow">Assessments</p>
         <h2>Assessment Management</h2>
         <p>
-            View assessments currently stored in the system.
+            View and manage assessments currently stored in the system.
         </p>
     </div>
 
@@ -45,6 +45,18 @@ require __DIR__ . '/includes/header.php';
     </div>
 <?php endif; ?>
 
+<?php if (isset($_GET['updated'])): ?>
+    <div class="alert alert-success" role="status">
+        Assessment updated successfully.
+    </div>
+<?php endif; ?>
+
+<?php if (isset($_GET['deleted'])): ?>
+    <div class="alert alert-success" role="status">
+        Assessment deleted successfully.
+    </div>
+<?php endif; ?>
+
 <section class="panel">
     <?php if ($assessments): ?>
         <div class="table-wrapper">
@@ -55,6 +67,7 @@ require __DIR__ . '/includes/header.php';
                         <th>Module</th>
                         <th>Due Date</th>
                         <th>Maximum Mark</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
 
@@ -73,7 +86,9 @@ require __DIR__ . '/includes/header.php';
                                         $assessment['module_code']
                                     ) ?>
                                 </strong>
+
                                 <br>
+
                                 <span class="table-secondary">
                                     <?= htmlspecialchars(
                                         $assessment['module_name']
@@ -94,6 +109,24 @@ require __DIR__ . '/includes/header.php';
                                         2
                                     )
                                 ) ?>
+                            </td>
+
+                            <td>
+                                <div class="table-actions">
+                                    <a
+                                        href="edit_assessment.php?id=<?= (int) $assessment['id'] ?>"
+                                        class="button button-small button-primary"
+                                    >
+                                        Edit
+                                    </a>
+
+                                    <a
+                                        href="delete_assessment.php?id=<?= (int) $assessment['id'] ?>"
+                                        class="button button-small button-danger"
+                                    >
+                                        Delete
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

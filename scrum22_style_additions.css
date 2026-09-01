@@ -1,0 +1,22 @@
+/* SCRUM-22: Record student assessment marks */
+
+.form-group select {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font: inherit;
+    min-height: 44px;
+    padding: 10px 12px;
+    width: 100%;
+}
+
+.form-group select:focus {
+    border-color: var(--accent);
+    outline: 2px solid rgba(31, 95, 153, 0.15);
+}
+
+.button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}

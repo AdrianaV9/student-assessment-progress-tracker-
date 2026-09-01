@@ -1,0 +1,11 @@
+/* SCRUM-20: Create assessment */
+
+.table-secondary {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+input[type="date"],
+input[type="number"] {
+    min-height: 44px;
+}

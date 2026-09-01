@@ -1,0 +1,46 @@
+/* SCRUM-19: Delete student record */
+
+.button-danger {
+    background: #b42318;
+    border-color: #b42318;
+    color: #ffffff;
+}
+
+.button-danger:hover {
+    background: #8f1d14;
+    border-color: #8f1d14;
+}
+
+.delete-confirmation {
+    max-width: 760px;
+}
+
+.warning-box {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    margin-bottom: 22px;
+    padding: 18px;
+}
+
+.warning-box h3 {
+    margin-top: 0;
+}
+
+.student-delete-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.delete-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 600px) {
+    .delete-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

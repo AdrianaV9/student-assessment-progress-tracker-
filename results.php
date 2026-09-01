@@ -12,7 +12,11 @@ $statement = $pdo->query(
         s.last_name,
         a.title AS assessment_title,
         a.maximum_mark,
-        m.module_code
+        m.module_code,
+        ROUND(
+            (r.mark_achieved / NULLIF(a.maximum_mark, 0)) * 100,
+            2
+        ) AS percentage
      FROM results r
      JOIN students s
         ON r.student_id = s.id
@@ -37,7 +41,7 @@ require __DIR__ . '/includes/header.php';
         <p class="eyebrow">Results</p>
         <h2>Assessment Results</h2>
         <p>
-            View marks currently recorded for students.
+            View recorded marks and automatically calculated percentages.
         </p>
     </div>
 
@@ -66,6 +70,7 @@ require __DIR__ . '/includes/header.php';
                         <th>Assessment</th>
                         <th>Mark Achieved</th>
                         <th>Maximum Mark</th>
+                        <th>Percentage</th>
                     </tr>
                 </thead>
 
@@ -118,6 +123,23 @@ require __DIR__ . '/includes/header.php';
                                         2
                                     )
                                 ) ?>
+                            </td>
+
+                            <td>
+                                <?php if ($result['percentage'] !== null): ?>
+                                    <strong class="percentage-value">
+                                        <?= htmlspecialchars(
+                                            number_format(
+                                                (float) $result['percentage'],
+                                                2
+                                            )
+                                        ) ?>%
+                                    </strong>
+                                <?php else: ?>
+                                    <span class="table-secondary">
+                                        Not available
+                                    </span>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

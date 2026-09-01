@@ -7,6 +7,7 @@ $statement = $pdo->query(
     'SELECT
         r.id,
         r.mark_achieved,
+        r.feedback,
         s.student_number,
         s.first_name,
         s.last_name,
@@ -41,7 +42,7 @@ require __DIR__ . '/includes/header.php';
         <p class="eyebrow">Results</p>
         <h2>Assessment Results</h2>
         <p>
-            View recorded marks and automatically calculated percentages.
+            View marks, percentages and assessment feedback.
         </p>
     </div>
 
@@ -59,6 +60,12 @@ require __DIR__ . '/includes/header.php';
     </div>
 <?php endif; ?>
 
+<?php if (isset($_GET['feedback_updated'])): ?>
+    <div class="alert alert-success" role="status">
+        Assessment feedback saved successfully.
+    </div>
+<?php endif; ?>
+
 <section class="panel">
     <?php if ($results): ?>
         <div class="table-wrapper">
@@ -68,9 +75,10 @@ require __DIR__ . '/includes/header.php';
                         <th>Student</th>
                         <th>Module</th>
                         <th>Assessment</th>
-                        <th>Mark Achieved</th>
-                        <th>Maximum Mark</th>
+                        <th>Mark</th>
                         <th>Percentage</th>
+                        <th>Feedback</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
 
@@ -113,12 +121,8 @@ require __DIR__ . '/includes/header.php';
                                         (float) $result['mark_achieved'],
                                         2
                                     )
-                                ) ?>
-                            </td>
-
-                            <td>
-                                <?= htmlspecialchars(
-                                    number_format(
+                                    . ' / '
+                                    . number_format(
                                         (float) $result['maximum_mark'],
                                         2
                                     )
@@ -140,6 +144,31 @@ require __DIR__ . '/includes/header.php';
                                         Not available
                                     </span>
                                 <?php endif; ?>
+                            </td>
+
+                            <td class="feedback-cell">
+                                <?php if (!empty($result['feedback'])): ?>
+                                    <?= nl2br(
+                                        htmlspecialchars(
+                                            $result['feedback']
+                                        )
+                                    ) ?>
+                                <?php else: ?>
+                                    <span class="table-secondary">
+                                        No feedback
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+
+                            <td>
+                                <a
+                                    href="edit_feedback.php?id=<?= (int) $result['id'] ?>"
+                                    class="button button-small button-secondary"
+                                >
+                                    <?= !empty($result['feedback'])
+                                        ? 'Edit Feedback'
+                                        : 'Add Feedback' ?>
+                                </a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

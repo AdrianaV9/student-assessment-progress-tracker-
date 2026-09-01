@@ -1,0 +1,21 @@
+# SCRUM-17 Installation Notes
+
+This package contains only the files changed or added for SCRUM-17.
+
+## Replace / add
+
+Copy `add_student.php` into the repository root.
+
+Replace the existing `students.php` with the supplied version.
+
+Open the existing `css/style.css` file and paste the complete contents of
+`css/scrum17_style_additions.css` at the bottom of it.
+
+Then add:
+
+`docs/testing/SCRUM-17-test-evidence.md`
+
+to the repository.
+
+Do not replace your existing `css/style.css` with the small additions file;
+append the additions to the existing stylesheet.

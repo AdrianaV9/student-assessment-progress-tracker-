@@ -3,22 +3,140 @@ require_once __DIR__ . '/config/database.php';
 
 $pageTitle = 'Students';
 
+$search = trim($_GET['search'] ?? '');
+
+if ($search !== '') {
+    $statement = $pdo->prepare(
+        'SELECT
+            id,
+            student_number,
+            first_name,
+            last_name,
+            email,
+            course_programme
+         FROM students
+         WHERE student_number LIKE :search
+            OR first_name LIKE :search
+            OR last_name LIKE :search
+         ORDER BY last_name, first_name'
+    );
+
+    $statement->execute([
+        'search' => '%' . $search . '%'
+    ]);
+
+    $students = $statement->fetchAll();
+
+} else {
+    $statement = $pdo->query(
+        'SELECT
+            id,
+            student_number,
+            first_name,
+            last_name,
+            email,
+            course_programme
+         FROM students
+         ORDER BY last_name, first_name'
+    );
+
+    $students = $statement->fetchAll();
+}
+
 require __DIR__ . '/includes/header.php';
 ?>
 
 <section class="page-heading">
     <div>
         <p class="eyebrow">Students</p>
-        <h2>Student management</h2>
-        <p>Student CRUD functionality will be implemented during Sprint 2.</p>
+        <h2>Student Management</h2>
+        <p>
+            View students currently stored in the assessment tracking system.
+        </p>
     </div>
+
+    <a href="add_student.php" class="button button-primary">
+        + Add Student
+    </a>
+</section>
+
+<?php if (isset($_GET['added'])): ?>
+    <div class="alert alert-success" role="status">
+        Student added successfully.
+    </div>
+<?php endif; ?>
+
+<section class="panel">
+    <form method="get" action="students.php" class="search-form">
+        <div class="form-group">
+            <label for="search">Search students</label>
+            <input
+                type="search"
+                id="search"
+                name="search"
+                placeholder="Student ID or name"
+                value="<?= htmlspecialchars($search) ?>"
+            >
+        </div>
+
+        <button type="submit" class="button button-secondary">
+            Search
+        </button>
+
+        <?php if ($search !== ''): ?>
+            <a href="students.php" class="button button-secondary">
+                Clear
+            </a>
+        <?php endif; ?>
+    </form>
 </section>
 
 <section class="panel">
-    <p class="placeholder-note">
-        This page is part of the initial application structure.
-        Its full functionality will be implemented in the relevant Jira story.
-    </p>
+    <?php if ($students): ?>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Course / Programme</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <?php foreach ($students as $student): ?>
+                        <tr>
+                            <td>
+                                <?= htmlspecialchars($student['student_number']) ?>
+                            </td>
+                            <td>
+                                <?= htmlspecialchars(
+                                    $student['first_name']
+                                    . ' '
+                                    . $student['last_name']
+                                ) ?>
+                            </td>
+                            <td>
+                                <?= htmlspecialchars(
+                                    $student['email'] ?? ''
+                                ) ?>
+                            </td>
+                            <td>
+                                <?= htmlspecialchars(
+                                    $student['course_programme'] ?? ''
+                                ) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php else: ?>
+        <p class="placeholder-note">
+            No student records were found.
+        </p>
+    <?php endif; ?>
 </section>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

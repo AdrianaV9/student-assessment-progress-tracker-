@@ -1,0 +1,22 @@
+SCRUM-18 INSTALLATION NOTES
+
+Add:
+- view_student.php
+- edit_student.php
+
+Replace:
+- students.php
+
+Append the contents of:
+- css/scrum18_style_additions.css
+
+to the bottom of your existing:
+- css/style.css
+
+Add:
+- docs/testing/SCRUM-18-test-evidence.md
+
+Test locally at:
+http://localhost/student-assessment-progress-tracker/students.php
+
+Do not replace the existing style.css with the additions file.

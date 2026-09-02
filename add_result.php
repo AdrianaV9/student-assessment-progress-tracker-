@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/validation.php';
 
 $pageTitle = 'Record Assessment Mark';
 
@@ -50,11 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Select a valid assessment.';
     }
 
-    if ($markAchieved === '') {
-        $errors[] = 'Mark is required.';
-    } elseif (!is_numeric($markAchieved)) {
-        $errors[] = 'Mark must be a number.';
-    }
+    $markErrors = validateMarkValue($markAchieved);
+    $errors = array_merge($errors, $markErrors);
 
     $student = null;
     $assessment = null;
@@ -95,24 +93,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if (
-        !$errors
-        && $assessment
-        && is_numeric($markAchieved)
-    ) {
-        $markValue = (float) $markAchieved;
-        $maximumMark = (float) $assessment['maximum_mark'];
-
-        if ($markValue < 0) {
-            $errors[] = 'Mark cannot be below zero.';
-        }
-
-        if ($markValue > $maximumMark) {
-            $errors[] =
-                'Mark cannot be greater than the assessment maximum mark of '
-                . number_format($maximumMark, 2)
-                . '.';
-        }
+    if (!$errors && $assessment) {
+        $errors = array_merge(
+            $errors,
+            validateMarkValue(
+                $markAchieved,
+                (float) $assessment['maximum_mark']
+            )
+        );
     }
 
     if (!$errors) {
@@ -206,7 +194,6 @@ require __DIR__ . '/includes/header.php';
         method="post"
         action="add_result.php"
         class="form-grid"
-        novalidate
     >
         <div class="form-group">
             <label for="student_id">Student *</label>
@@ -278,6 +265,7 @@ require __DIR__ . '/includes/header.php';
                 id="mark_achieved"
                 name="mark_achieved"
                 min="0"
+                max="9999.99"
                 step="0.01"
                 required
                 value="<?= htmlspecialchars($markAchieved) ?>"

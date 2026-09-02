@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/validation.php';
 
 $pageTitle = 'Create Assessment';
 
@@ -18,58 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dueDate = trim($_POST['due_date'] ?? '');
     $maximumMark = trim($_POST['maximum_mark'] ?? '');
 
-    if ($title === '') {
-        $errors[] = 'Assessment title is required.';
-    }
-
-    if ($moduleCode === '') {
-        $errors[] = 'Module code is required.';
-    }
-
-    if ($moduleName === '') {
-        $errors[] = 'Module name is required.';
-    }
-
-    if ($dueDate === '') {
-        $errors[] = 'Due date is required.';
-    }
-
-    if ($maximumMark === '') {
-        $errors[] = 'Maximum mark is required.';
-    }
-
-    if ($title !== '' && strlen($title) > 200) {
-        $errors[] = 'Assessment title must be 200 characters or fewer.';
-    }
-
-    if ($moduleCode !== '' && strlen($moduleCode) > 30) {
-        $errors[] = 'Module code must be 30 characters or fewer.';
-    }
-
-    if ($moduleName !== '' && strlen($moduleName) > 150) {
-        $errors[] = 'Module name must be 150 characters or fewer.';
-    }
-
-    if ($dueDate !== '') {
-        $dateObject = DateTime::createFromFormat('Y-m-d', $dueDate);
-
-        if (
-            !$dateObject
-            || $dateObject->format('Y-m-d') !== $dueDate
-        ) {
-            $errors[] = 'Enter a valid due date.';
-        }
-    }
-
-    if (
-        $maximumMark !== ''
-        && (
-            !is_numeric($maximumMark)
-            || (float) $maximumMark <= 0
-        )
-    ) {
-        $errors[] = 'Maximum mark must be greater than zero.';
-    }
+    $errors = validateAssessmentFields(
+        $title,
+        $moduleCode,
+        $moduleName,
+        $dueDate,
+        $maximumMark
+    );
 
     if (!$errors) {
         try {
@@ -179,7 +135,6 @@ require __DIR__ . '/includes/header.php';
         method="post"
         action="add_assessment.php"
         class="form-grid"
-        novalidate
     >
         <div class="form-group form-group-full">
             <label for="title">Assessment Title *</label>
@@ -237,6 +192,7 @@ require __DIR__ . '/includes/header.php';
                 id="maximum_mark"
                 name="maximum_mark"
                 min="0.01"
+                max="9999.99"
                 step="0.01"
                 required
                 value="<?= htmlspecialchars($maximumMark) ?>"

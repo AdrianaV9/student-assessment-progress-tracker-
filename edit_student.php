@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/validation.php';
 
 $pageTitle = 'Edit Student';
 
@@ -39,29 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $courseProgramme = trim($_POST['course_programme'] ?? '');
 
-    if ($studentNumber === '') {
-        $errors[] = 'Student ID is required.';
-    }
-
-    if ($firstName === '') {
-        $errors[] = 'First name is required.';
-    }
-
-    if ($lastName === '') {
-        $errors[] = 'Last name is required.';
-    }
-
-    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Enter a valid email address.';
-    }
-
-    if (strlen($studentNumber) > 20) {
-        $errors[] = 'Student ID must be 20 characters or fewer.';
-    }
-
-    if (strlen($firstName) > 100 || strlen($lastName) > 100) {
-        $errors[] = 'Student names must be 100 characters or fewer.';
-    }
+    $errors = validateStudentFields(
+        $studentNumber,
+        $firstName,
+        $lastName,
+        $email,
+        $courseProgramme
+    );
 
     if (!$errors) {
         $duplicateStatement = $pdo->prepare(
@@ -78,6 +63,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ((int) $duplicateStatement->fetchColumn() > 0) {
             $errors[] = 'That student ID already exists.';
+        }
+    }
+
+    if (!$errors && $email !== '') {
+        $emailStatement = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM students
+             WHERE email = :email
+               AND id <> :id'
+        );
+
+        $emailStatement->execute([
+            'email' => $email,
+            'id' => $studentId
+        ]);
+
+        if ((int) $emailStatement->fetchColumn() > 0) {
+            $errors[] = 'That email address is already used by another student.';
         }
     }
 
@@ -135,8 +138,7 @@ require __DIR__ . '/includes/header.php';
 <section class="panel">
     <form method="post"
           action="edit_student.php?id=<?= (int) $studentId ?>"
-          class="form-grid"
-          novalidate>
+          class="form-grid">
 
         <div class="form-group">
             <label for="student_number">Student ID *</label>

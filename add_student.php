@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/validation.php';
 
 $pageTitle = 'Add Student';
 
@@ -19,29 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $courseProgramme = trim($_POST['course_programme'] ?? '');
 
-    if ($studentNumber === '') {
-        $errors[] = 'Student ID is required.';
-    }
-
-    if ($firstName === '') {
-        $errors[] = 'First name is required.';
-    }
-
-    if ($lastName === '') {
-        $errors[] = 'Last name is required.';
-    }
-
-    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Enter a valid email address.';
-    }
-
-    if (strlen($studentNumber) > 20) {
-        $errors[] = 'Student ID must be 20 characters or fewer.';
-    }
-
-    if (strlen($firstName) > 100 || strlen($lastName) > 100) {
-        $errors[] = 'Student names must be 100 characters or fewer.';
-    }
+    $errors = validateStudentFields(
+        $studentNumber,
+        $firstName,
+        $lastName,
+        $email,
+        $courseProgramme
+    );
 
     if (!$errors) {
         $duplicateCheck = $pdo->prepare(
@@ -56,6 +41,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ((int) $duplicateCheck->fetchColumn() > 0) {
             $errors[] = 'That student ID already exists.';
+        }
+    }
+
+    if (!$errors && $email !== '') {
+        $emailCheck = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM students
+             WHERE email = :email'
+        );
+
+        $emailCheck->execute([
+            'email' => $email
+        ]);
+
+        if ((int) $emailCheck->fetchColumn() > 0) {
+            $errors[] = 'That email address is already used by another student.';
         }
     }
 

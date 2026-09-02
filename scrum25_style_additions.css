@@ -1,0 +1,30 @@
+/* SCRUM-25: Overall student progress */
+
+.progress-explanation {
+    margin-bottom: 20px;
+}
+
+.progress-explanation h3 {
+    margin-top: 0;
+}
+
+.calculation-example {
+    margin-bottom: 0;
+}
+
+.progress-result {
+    display: grid;
+    gap: 8px;
+    min-width: 180px;
+}
+
+.progress-result progress {
+    height: 14px;
+    max-width: 240px;
+    width: 100%;
+}
+
+.progress-empty {
+    color: var(--muted);
+    font-style: italic;
+}

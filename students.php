@@ -2,31 +2,79 @@
 require_once __DIR__ . '/config/database.php';
 
 $pageTitle = 'Students';
-$search = trim($_GET['search'] ?? '');
+
+$search = trim($_GET['q'] ?? '');
+$courseFilter = trim($_GET['course'] ?? '');
+
+/*
+ * Load available programme values for the filter.
+ * Blank/null programme values are excluded.
+ */
+$courseStatement = $pdo->query(
+    'SELECT DISTINCT course_programme
+     FROM students
+     WHERE course_programme IS NOT NULL
+       AND TRIM(course_programme) <> \'\'
+     ORDER BY course_programme'
+);
+
+$courses = $courseStatement->fetchAll(PDO::FETCH_COLUMN);
+
+$sql = '
+    SELECT
+        id,
+        student_number,
+        first_name,
+        last_name,
+        email,
+        course_programme
+    FROM students
+    WHERE 1 = 1
+';
+
+$params = [];
 
 if ($search !== '') {
-    $statement = $pdo->prepare(
-        'SELECT id, student_number, first_name, last_name, email, course_programme
-         FROM students
-         WHERE student_number LIKE :search
-            OR first_name LIKE :search
-            OR last_name LIKE :search
-         ORDER BY last_name, first_name'
-    );
+    /*
+     * Native PDO prepared statements require a unique named
+     * placeholder for each occurrence in the SQL statement.
+     */
+    $sql .= '
+        AND (
+            student_number LIKE :search_student_number
+            OR first_name LIKE :search_first_name
+            OR last_name LIKE :search_last_name
+            OR CONCAT(first_name, \' \', last_name) LIKE :search_full_name
+            OR email LIKE :search_email
+        )
+    ';
 
-    $statement->execute([
-        'search' => '%' . $search . '%'
-    ]);
+    $searchValue = '%' . $search . '%';
 
-    $students = $statement->fetchAll();
-
-} else {
-    $students = $pdo->query(
-        'SELECT id, student_number, first_name, last_name, email, course_programme
-         FROM students
-         ORDER BY last_name, first_name'
-    )->fetchAll();
+    $params['search_student_number'] = $searchValue;
+    $params['search_first_name'] = $searchValue;
+    $params['search_last_name'] = $searchValue;
+    $params['search_full_name'] = $searchValue;
+    $params['search_email'] = $searchValue;
 }
+
+if ($courseFilter !== '') {
+    $sql .= '
+        AND course_programme = :course
+    ';
+
+    $params['course'] = $courseFilter;
+}
+
+$sql .= '
+    ORDER BY last_name, first_name, student_number
+';
+
+$statement = $pdo->prepare($sql);
+$statement->execute($params);
+$students = $statement->fetchAll();
+
+$hasFilters = $search !== '' || $courseFilter !== '';
 
 require __DIR__ . '/includes/header.php';
 ?>
@@ -36,11 +84,14 @@ require __DIR__ . '/includes/header.php';
         <p class="eyebrow">Students</p>
         <h2>Student Management</h2>
         <p>
-            View and manage students currently stored in the system.
+            Search, filter and manage student records.
         </p>
     </div>
 
-    <a href="add_student.php" class="button button-primary">
+    <a
+        href="add_student.php"
+        class="button button-primary"
+    >
         + Add Student
     </a>
 </section>
@@ -57,36 +108,71 @@ require __DIR__ . '/includes/header.php';
     </div>
 <?php endif; ?>
 
-<section class="panel">
-    <form method="get" action="students.php" class="search-form">
+<section class="panel student-search-panel">
+    <form
+        method="get"
+        action="students.php"
+        class="student-search-form"
+    >
         <div class="form-group">
-            <label for="search">Search students</label>
+            <label for="q">Search students</label>
 
             <input
                 type="search"
-                id="search"
-                name="search"
-                placeholder="Student ID or name"
+                id="q"
+                name="q"
                 value="<?= htmlspecialchars($search) ?>"
+                placeholder="Student ID, name or email"
             >
         </div>
 
-        <button
-            type="submit"
-            class="button button-secondary"
-        >
-            Search
-        </button>
+        <div class="form-group">
+            <label for="course">Course / Programme</label>
 
-        <?php if ($search !== ''): ?>
-            <a
-                href="students.php"
-                class="button button-secondary"
+            <select
+                id="course"
+                name="course"
             >
-                Clear
-            </a>
-        <?php endif; ?>
+                <option value="">All programmes</option>
+
+                <?php foreach ($courses as $course): ?>
+                    <option
+                        value="<?= htmlspecialchars($course) ?>"
+                        <?= $courseFilter === $course ? 'selected' : '' ?>
+                    >
+                        <?= htmlspecialchars($course) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="student-search-actions">
+            <button
+                type="submit"
+                class="button button-primary"
+            >
+                Search / Filter
+            </button>
+
+            <?php if ($hasFilters): ?>
+                <a
+                    href="students.php"
+                    class="button button-secondary"
+                >
+                    Clear
+                </a>
+            <?php endif; ?>
+        </div>
     </form>
+
+    <?php if ($hasFilters): ?>
+        <p class="search-summary">
+            <?= count($students) ?>
+            matching
+            <?= count($students) === 1 ? 'student' : 'students' ?>
+            found.
+        </p>
+    <?php endif; ?>
 </section>
 
 <section class="panel">
@@ -107,7 +193,11 @@ require __DIR__ . '/includes/header.php';
                     <?php foreach ($students as $student): ?>
                         <tr>
                             <td>
-                                <?= htmlspecialchars($student['student_number']) ?>
+                                <strong>
+                                    <?= htmlspecialchars(
+                                        $student['student_number']
+                                    ) ?>
+                                </strong>
                             </td>
 
                             <td>
@@ -119,15 +209,25 @@ require __DIR__ . '/includes/header.php';
                             </td>
 
                             <td>
-                                <?= htmlspecialchars(
-                                    $student['email'] ?? ''
-                                ) ?>
+                                <?php if (!empty($student['email'])): ?>
+                                    <?= htmlspecialchars($student['email']) ?>
+                                <?php else: ?>
+                                    <span class="table-secondary">
+                                        Not provided
+                                    </span>
+                                <?php endif; ?>
                             </td>
 
                             <td>
-                                <?= htmlspecialchars(
-                                    $student['course_programme'] ?? ''
-                                ) ?>
+                                <?php if (!empty($student['course_programme'])): ?>
+                                    <?= htmlspecialchars(
+                                        $student['course_programme']
+                                    ) ?>
+                                <?php else: ?>
+                                    <span class="table-secondary">
+                                        Not provided
+                                    </span>
+                                <?php endif; ?>
                             </td>
 
                             <td>
@@ -160,9 +260,25 @@ require __DIR__ . '/includes/header.php';
             </table>
         </div>
 
+    <?php elseif ($hasFilters): ?>
+        <div class="no-results-state">
+            <h3>No matching students</h3>
+
+            <p>
+                No student records match the current search or filter.
+            </p>
+
+            <a
+                href="students.php"
+                class="button button-secondary"
+            >
+                Clear Search and Filters
+            </a>
+        </div>
+
     <?php else: ?>
         <p class="placeholder-note">
-            No student records were found.
+            No students have been added yet.
         </p>
     <?php endif; ?>
 </section>

@@ -1,0 +1,38 @@
+/* SCRUM-27: Search and filter student records */
+
+.student-search-panel {
+    margin-bottom: 20px;
+}
+
+.student-search-form {
+    align-items: end;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: minmax(220px, 2fr) minmax(200px, 1fr) auto;
+}
+
+.student-search-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.search-summary {
+    color: var(--muted);
+    margin: 14px 0 0;
+}
+
+.no-results-state {
+    padding: 18px 0;
+    text-align: center;
+}
+
+.no-results-state h3 {
+    margin-top: 0;
+}
+
+@media (max-width: 760px) {
+    .student-search-form {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,101 @@
+/* SCRUM-26: Progress dashboard */
+
+.dashboard-cards {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 20px;
+}
+
+.dashboard-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+}
+
+.dashboard-card-label {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.dashboard-card-value {
+    font-size: 1.8rem;
+    line-height: 1.1;
+}
+
+.dashboard-section {
+    margin-bottom: 20px;
+}
+
+.section-heading {
+    align-items: flex-start;
+    display: flex;
+    gap: 18px;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.section-heading h3 {
+    margin: 0 0 6px;
+}
+
+.section-heading p {
+    margin: 0;
+}
+
+.dashboard-progress {
+    display: grid;
+    gap: 7px;
+    min-width: 170px;
+}
+
+.dashboard-progress progress {
+    height: 13px;
+    max-width: 220px;
+    width: 100%;
+}
+
+.status-badge {
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 4px 9px;
+    white-space: nowrap;
+}
+
+.status-upcoming {
+    color: #17663a;
+}
+
+.status-today {
+    color: #7a5a00;
+}
+
+.status-overdue {
+    color: #9b2c2c;
+}
+
+.status-neutral {
+    color: #5f6368;
+}
+
+@media (max-width: 900px) {
+    .dashboard-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .section-heading {
+        display: grid;
+    }
+}
